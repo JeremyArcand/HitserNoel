@@ -130,7 +130,10 @@
     }
     button.secondary { background: #ecf0f1; color: var(--red); }
 
-    .hidden { display: none; }
+    /* 🔴 IMPORTANT : la classe hidden doit gagner sur #rules-modal */
+    .hidden { 
+      display: none !important;
+    }
 
     /* Players */
     #players-section { margin-top: 22px; border-top: 1px solid #ecf0f1; padding-top: 16px; }
