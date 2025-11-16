@@ -375,6 +375,64 @@
       background: rgba(205, 127, 50, 0.18);
     }
 
+    /* Bouton règlements */
+    #rules-btn-container {
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    /* Modal règlements */
+    #rules-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+    }
+
+    #rules-dialog {
+      background: #ffffff;
+      border-radius: 16px;
+      max-width: 420px;
+      width: 100%;
+      padding: 18px 18px 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      text-align: left;
+      color: #333;
+    }
+
+    #rules-dialog h3 {
+      margin: 0 0 10px;
+      text-align: center;
+      color: var(--red);
+    }
+
+    #rules-dialog p {
+      margin: 4px 0 10px;
+      font-size: 0.95rem;
+    }
+
+    #rules-dialog ul {
+      padding-left: 18px;
+      margin: 0 0 12px;
+      font-size: 0.9rem;
+    }
+
+    #rules-dialog li {
+      margin-bottom: 4px;
+    }
+
+    #rules-close {
+      display: block;
+      margin: 0 auto;
+      padding: 7px 16px;
+      font-size: 0.9rem;
+      min-width: 120px;
+    }
+
     @media (min-width: 600px) {
       body {
         padding-top: 50px;
@@ -481,6 +539,30 @@
       <div id="podium-content"></div>
     </div>
 
+    <!-- Bouton règlements -->
+    <div id="rules-btn-container">
+      <button id="rules-btn" class="secondary" type="button">Règlements</button>
+    </div>
+
+  </div>
+
+  <!-- Modal règlements -->
+  <div id="rules-modal" class="hidden">
+    <div id="rules-dialog">
+      <h3>Règlements du jeu</h3>
+      <p>Suggestion de fonctionnement pour jouer à plusieurs :</p>
+      <ul>
+        <li>Choisissez le nombre de chansons pour la partie.</li>
+        <li>Ajoutez les joueurs avec leurs noms.</li>
+        <li>Choisissez une difficulté (la longueur de l'extrait varie).</li>
+        <li>Cliquez sur <strong>Nouvelle chanson aléatoire</strong> pour lancer un extrait.</li>
+        <li>Les joueurs essaient de deviner le titre et/ou l'artiste.</li>
+        <li>Cliquez sur <strong>Révéler le titre &amp; l'artiste</strong> pour vérifier.</li>
+        <li>Attribuez les points avec les boutons <strong>+1</strong> et <strong>-1</strong> pour chaque joueur.</li>
+        <li>À la fin du nombre de chansons choisi, le podium affiche les scores.</li>
+      </ul>
+      <button id="rules-close" class="secondary" type="button">Fermer</button>
+    </div>
   </div>
 
   <script>
@@ -539,6 +621,10 @@
 
     const podiumSection = document.getElementById('podium-section');
     const podiumContent = document.getElementById('podium-content');
+
+    const rulesBtn = document.getElementById('rules-btn');
+    const rulesModal = document.getElementById('rules-modal');
+    const rulesClose = document.getElementById('rules-close');
 
     let difficulty = "easy";
     let currentSongIndex = null;
@@ -870,6 +956,21 @@
     });
 
     audio.addEventListener('timeupdate', updateAudioProgress);
+
+    /* === Modal règlements === */
+    rulesBtn.addEventListener('click', () => {
+      rulesModal.classList.remove('hidden');
+    });
+
+    rulesClose.addEventListener('click', () => {
+      rulesModal.classList.add('hidden');
+    });
+
+    rulesModal.addEventListener('click', (e) => {
+      if (e.target === rulesModal) {
+        rulesModal.classList.add('hidden');
+      }
+    });
 
     // Init
     maxRounds = songs.length;
