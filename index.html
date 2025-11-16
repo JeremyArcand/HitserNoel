@@ -29,6 +29,31 @@
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+
+    /* Progression du JEU (nombre de chansons jouées) */
+    #game-progress-container {
+      margin-bottom: 18px;
+    }
+    #game-progress-bar {
+      width: 100%;
+      max-width: 380px;
+      height: 10px;
+      background: #ecf0f1;
+      border-radius: 999px;
+      margin: 0 auto 5px auto;
+      overflow: hidden;
+    }
+    #game-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #27ae60;
+      transition: width 0.2s ease-out;
+    }
+    #game-progress-label {
+      font-size: 0.95em;
+      color: #7f8c8d;
+    }
+
     #round-label {
       font-size: 1.3em;
       font-weight: 600;
@@ -39,16 +64,36 @@
       font-size: 0.95em;
       color: #7f8c8d;
     }
-    #answer {
-      margin-top: 18px;
-      font-size: 1.05em;
-      font-weight: 600;
+
+    /* Barre de progression du TEMPS de la chanson */
+    #progress-container {
+      margin-top: 15px;
+      margin-bottom: 5px;
+      text-align: center;
     }
-    .hidden {
-      visibility: hidden;
+    #progress-bar {
+      width: 100%;
+      max-width: 380px;
+      height: 8px;
+      background: #ecf0f1;
+      border-radius: 999px;
+      margin: 0 auto;
+      overflow: hidden;
     }
+    #progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #c0392b;
+      transition: width 0.1s linear;
+    }
+    #time-label {
+      font-size: 0.9em;
+      color: #7f8c8d;
+      margin-top: 5px;
+    }
+
     audio {
-      margin-top: 20px;
+      margin-top: 10px;
       width: 100%;
       max-width: 380px;
     }
@@ -78,10 +123,13 @@
       opacity: 0.6;
       cursor: default;
     }
-    footer {
-      margin-top: 30px;
-      font-size: 0.85em;
-      color: #7f8c8d;
+    #answer {
+      margin-top: 18px;
+      font-size: 1.05em;
+      font-weight: 600;
+    }
+    .hidden {
+      visibility: hidden;
     }
   </style>
 </head>
@@ -90,14 +138,30 @@
   <h2>Mode aléatoire</h2>
 
   <div id="card">
+    <!-- Barre de progression du jeu (combien de chansons jouées) -->
+    <div id="game-progress-container">
+      <div id="game-progress-bar">
+        <div id="game-progress-fill"></div>
+      </div>
+      <div id="game-progress-label">0 / 0 chansons</div>
+    </div>
+
     <div id="round-label">Chanson 1</div>
     <div id="duration-label">Durée : --:--</div>
+
+    <!-- Barre de progression de la chanson -->
+    <div id="progress-container">
+      <div id="progress-bar">
+        <div id="progress-fill"></div>
+      </div>
+      <div id="time-label">0:00 / 0:00</div>
+    </div>
 
     <audio id="player"></audio>
 
     <div class="buttons">
       <button id="new-song-btn">Nouvelle chanson aléatoire</button>
-      <button id="play-btn">▶️ Jouer / Rejouer</button>
+      <button id="play-btn">▶️ Jouer</button>
       <button id="reveal-btn" class="secondary">Révéler le titre & l'artiste</button>
     </div>
 
@@ -107,12 +171,8 @@
     </div>
   </div>
 
-  <footer>
-    Scan le QR, clique sur "Nouvelle chanson" puis joue avec ta copine 💚
-  </footer>
-
   <script>
-    // Liste de TES chansons : adapte les noms de fichiers à tes vrais .mp3
+    // Liste de TES chansons : adapte les noms et les fichiers .mp3
     const songs = [
       { file: "01_all_i_want.mp3",  title: "All I Want for Christmas Is You", artist: "Mariah Carey" },
       { file: "02_last_christmas.mp3", title: "Last Christmas", artist: "Wham!" },
@@ -125,6 +185,12 @@
     const audio = document.getElementById('player');
     const roundLabel = document.getElementById('round-label');
     const durationLabel = document.getElementById('duration-label');
+    const progressFill = document.getElementById('progress-fill');
+    const timeLabel = document.getElementById('time-label');
+
+    const gameProgressFill = document.getElementById('game-progress-fill');
+    const gameProgressLabel = document.getElementById('game-progress-label');
+
     const answerDiv = document.getElementById('answer');
     const answerTitle = document.getElementById('answer-title');
     const answerArtist = document.getElementById('answer-artist');
@@ -134,7 +200,20 @@
     const revealBtn = document.getElementById('reveal-btn');
 
     let currentSongIndex = null;
-    let round = 1;
+    let isPlaying = false;
+
+    // Pour ne pas rejouer les chansons déjà jouées
+    let remainingIndexes = songs.map((_, i) => i);
+    let playedCount = 0;
+    const totalSongs = songs.length;
+
+    // Initialiser l'affichage de la progression du jeu
+    function updateGameProgress() {
+      gameProgressLabel.textContent = playedCount + " / " + totalSongs + " chansons";
+      const percent = totalSongs === 0 ? 0 : (playedCount / totalSongs) * 100;
+      gameProgressFill.style.width = percent + "%";
+    }
+    updateGameProgress();
 
     function formatTime(seconds) {
       if (isNaN(seconds)) return "--:--";
@@ -143,19 +222,47 @@
       return m.toString().padStart(1, '0') + ":" + s.toString().padStart(2, '0');
     }
 
-    function pickRandomSong() {
-      if (songs.length === 0) return;
+    function resetAudioProgress() {
+      progressFill.style.width = "0%";
+      timeLabel.textContent = "0:00 / 0:00";
+    }
 
-      // Choix aléatoire (simple, il peut retomber sur la même)
-      let index = Math.floor(Math.random() * songs.length);
+    function updateAudioProgress() {
+      if (!audio.duration || isNaN(audio.duration)) return;
+      const percent = (audio.currentTime / audio.duration) * 100;
+      progressFill.style.width = percent + "%";
+      timeLabel.textContent = formatTime(audio.currentTime) + " / " + formatTime(audio.duration);
+    }
+
+    function pickRandomSong() {
+      if (remainingIndexes.length === 0) {
+        // Toutes les chansons ont été utilisées
+        roundLabel.textContent = "Toutes les chansons ont été jouées 🎉";
+        durationLabel.textContent = "Durée : --:--";
+        audio.src = "";
+        resetAudioProgress();
+        playBtn.disabled = true;
+        newSongBtn.disabled = true;
+        return;
+      }
+
+      // Choisir un index au hasard dans remainingIndexes
+      const randomPos = Math.floor(Math.random() * remainingIndexes.length);
+      const index = remainingIndexes[randomPos];
+      // Retirer cet index de la liste pour ne plus le rejouer
+      remainingIndexes.splice(randomPos, 1);
+
       currentSongIndex = index;
       const song = songs[index];
 
-      // Met à jour l'affichage de la manche
-      roundLabel.textContent = "Chanson " + round;
-      round++;
+      // Met à jour le numéro de chanson (basé sur combien ont été jouées)
+      playedCount++;
+      roundLabel.textContent = "Chanson " + playedCount;
 
-      // Cache la réponse
+      // Met à jour la progression du jeu
+      updateGameProgress();
+
+      // Réinitialise la réponse
       answerDiv.classList.add('hidden');
       answerTitle.textContent = "";
       answerArtist.textContent = "";
@@ -165,25 +272,50 @@
       audio.load();
 
       durationLabel.textContent = "Durée : chargement...";
+      resetAudioProgress();
+      isPlaying = false;
+      playBtn.textContent = "▶️ Jouer";
 
-      // Quand les métadonnées sont chargées (y compris la durée)
       audio.onloadedmetadata = function() {
         durationLabel.textContent = "Durée : " + formatTime(audio.duration);
+        timeLabel.textContent = "0:00 / " + formatTime(audio.duration);
       };
     }
 
     newSongBtn.addEventListener('click', function() {
+      // Si une chanson est en cours, on stoppe
+      audio.pause();
+      audio.currentTime = 0;
+      isPlaying = false;
+      playBtn.textContent = "▶️ Jouer";
+      resetAudioProgress();
+
       pickRandomSong();
     });
 
     playBtn.addEventListener('click', function() {
       if (!audio.src) {
+        // Si aucune chanson n'est chargée, on en tire une nouvelle
         pickRandomSong();
       }
-      audio.currentTime = 0;
-      audio.play().catch(err => {
-        console.log("Lecture bloquée :", err);
-      });
+
+      if (!audio.src) return; // au cas où il n'y a plus de chansons
+
+      if (!isPlaying) {
+        audio.currentTime = 0;
+        audio.play().then(() => {
+          isPlaying = true;
+          playBtn.textContent = "⏹️ Stop";
+        }).catch(err => {
+          console.log("Lecture bloquée :", err);
+        });
+      } else {
+        audio.pause();
+        audio.currentTime = 0;
+        isPlaying = false;
+        playBtn.textContent = "▶️ Jouer";
+        resetAudioProgress();
+      }
     });
 
     revealBtn.addEventListener('click', function() {
@@ -194,8 +326,13 @@
       answerDiv.classList.remove('hidden');
     });
 
-    // Option : tu peux lancer directement une chanson au chargement
-    // pickRandomSong();
+    audio.addEventListener('timeupdate', updateAudioProgress);
+
+    audio.addEventListener('ended', function() {
+      isPlaying = false;
+      playBtn.textContent = "▶️ Jouer";
+      updateAudioProgress();
+    });
   </script>
 </body>
 </html>
