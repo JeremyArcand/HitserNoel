@@ -36,7 +36,7 @@
 
     h2 {
       font-size: 1.1rem;
-      margin: 0 0 20px;
+      margin: 0 0 18px;
       color: #7f8c8d;
     }
 
@@ -69,9 +69,9 @@
       right: 12px;
     }
 
-    /* Progression du JEU (nombre de chansons jouées) */
+    /* Progression du jeu */
     #game-progress-container {
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
 
     #game-progress-bar {
@@ -95,6 +95,36 @@
     #game-progress-label {
       font-size: 0.95rem;
       color: #7f8c8d;
+    }
+
+    /* Difficulté */
+    #difficulty-container {
+      margin: 10px auto 14px;
+      font-size: 0.9rem;
+      color: #7f8c8d;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      justify-content: center;
+      align-items: center;
+      max-width: 420px;
+    }
+
+    #difficulty-container span {
+      font-weight: 600;
+      color: var(--red);
+    }
+
+    #difficulty-container label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    #difficulty-container input[type="radio"] {
+      accent-color: var(--red);
+      cursor: pointer;
     }
 
     #round-label {
@@ -241,10 +271,19 @@
       <div id="game-progress-label">0 / 0 chansons</div>
     </div>
 
+    <!-- Choix de la difficulté -->
+    <div id="difficulty-container">
+      <span>Niveau :</span>
+      <label><input type="radio" name="difficulty" value="easy" checked> Facile</label>
+      <label><input type="radio" name="difficulty" value="medium"> Moyen</label>
+      <label><input type="radio" name="difficulty" value="hard"> Difficile</label>
+      <label><input type="radio" name="difficulty" value="extreme"> Extrême</label>
+    </div>
+
     <div id="round-label">Chanson 1</div>
     <div id="duration-label">Durée : --:--</div>
 
-    <!-- Barre de progression de la chanson -->
+    <!-- Barre de progression de l'extrait -->
     <div id="progress-container">
       <div id="progress-bar">
         <div id="progress-fill"></div>
@@ -310,12 +349,20 @@
     const playBtn = document.getElementById('play-btn');
     const revealBtn = document.getElementById('reveal-btn');
 
+    const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
+
+    let difficulty = 'easy'; // easy, medium, hard, extreme
     let currentSongIndex = null;
     let isPlaying = false;
 
     let remainingIndexes = songs.map((_, i) => i);
     let playedCount = 0;
     const totalSongs = songs.length;
+
+    let segmentStart = 0;
+    let segmentEnd = null;
+    let fadeInterval = null;
+    let autoPlayAfterLoad = false;
 
     function updateGameProgress() {
       gameProgressLabel.textContent = playedCount + " / " + totalSongs + " chansons";
@@ -324,11 +371,27 @@
     }
     updateGameProgress();
 
+    difficultyRadios.forEach(r => {
+      r.addEventListener('change', () => {
+        difficulty = r.value;
+      });
+    });
+
+    function getClipLengthSeconds() {
+      switch (difficulty) {
+        case 'medium': return 12;
+        case 'hard': return 7;
+        case 'extreme': return 3;
+        case 'easy':
+        default: return null; // extrait = chanson complète
+      }
+    }
+
     function formatTime(seconds) {
-      if (isNaN(seconds)) return "--:--";
+      if (isNaN(seconds) || seconds == null) return "--:--";
       const m = Math.floor(seconds / 60);
       const s = Math.floor(seconds % 60);
-      return m.toString().padStart(1, '0') + ":" + s.toString().padStart(2, '0');
+      return m.toString() + ":" + s.toString().padStart(2, '0');
     }
 
     function resetAudioProgress() {
@@ -338,12 +401,106 @@
 
     function updateAudioProgress() {
       if (!audio.duration || isNaN(audio.duration)) return;
-      const percent = (audio.currentTime / audio.duration) * 100;
+
+      let total, elapsed;
+      if (segmentEnd != null && segmentEnd > segmentStart) {
+        total = segmentEnd - segmentStart;
+        elapsed = Math.max(0, audio.currentTime - segmentStart);
+      } else {
+        total = audio.duration;
+        elapsed = audio.currentTime;
+      }
+
+      if (!total || isNaN(total)) return;
+      const percent = Math.min(100, (elapsed / total) * 100);
       progressFill.style.width = percent + "%";
-      timeLabel.textContent = formatTime(audio.currentTime) + " / " + formatTime(audio.duration);
+      timeLabel.textContent = formatTime(elapsed) + " / " + formatTime(total);
+
+      // stop automatique quand on dépasse la fin de l'extrait
+      if (segmentEnd != null && audio.currentTime >= segmentEnd - 0.05) {
+        handleClipEnded();
+      }
     }
 
-    function pickRandomSong() {
+    function clearFade() {
+      if (fadeInterval) {
+        clearInterval(fadeInterval);
+        fadeInterval = null;
+      }
+    }
+
+    function computeSegmentBounds() {
+      const full = audio.duration;
+      const clipLen = getClipLengthSeconds();
+
+      if (!full || isNaN(full)) {
+        segmentStart = 0;
+        segmentEnd = null;
+        return null;
+      }
+
+      if (!clipLen || clipLen >= full) {
+        segmentStart = 0;
+        segmentEnd = full;
+        return full;
+      } else {
+        const maxStart = Math.max(0, full - clipLen);
+        segmentStart = Math.random() * maxStart;
+        segmentEnd = segmentStart + clipLen;
+        return clipLen;
+      }
+    }
+
+    function startPlaybackWithFade(resetToStart) {
+      if (!audio.src) return;
+
+      clearFade();
+
+      if (resetToStart && segmentStart != null && !isNaN(segmentStart)) {
+        audio.currentTime = segmentStart;
+      }
+
+      try { audio.volume = 0; } catch (e) {}
+
+      audio.play().then(() => {
+        isPlaying = true;
+        playBtn.textContent = "⏸️ Pause";
+
+        const targetVolume = 1.0;
+        const durationMs = 800;
+        const steps = 16;
+        let stepCount = 0;
+
+        fadeInterval = setInterval(() => {
+          if (!isPlaying) {
+            clearFade();
+            return;
+          }
+          stepCount++;
+          const vol = Math.min(targetVolume, (stepCount / steps) * targetVolume);
+          try { audio.volume = vol; } catch (e) {}
+
+          if (stepCount >= steps) {
+            clearFade();
+          }
+        }, durationMs / steps);
+      }).catch(err => {
+        console.log("Lecture bloquée :", err);
+      });
+    }
+
+    function handleClipEnded() {
+      audio.pause();
+      isPlaying = false;
+      clearFade();
+      playBtn.textContent = "▶️ Rejouer";
+
+      if (segmentStart != null && !isNaN(segmentStart)) {
+        audio.currentTime = segmentStart;
+      }
+    }
+
+    function pickRandomSong(autoPlay = false) {
       if (remainingIndexes.length === 0) {
         roundLabel.textContent = "Toutes les chansons ont été jouées 🎉";
         durationLabel.textContent = "Durée : --:--";
@@ -376,10 +533,24 @@
       resetAudioProgress();
       isPlaying = false;
       playBtn.textContent = "▶️ Jouer";
+      clearFade();
 
-      audio.onloadedmetadata = function() {
-        durationLabel.textContent = "Durée : " + formatTime(audio.duration);
-        timeLabel.textContent = "0:00 / " + formatTime(audio.duration);
+      autoPlayAfterLoad = autoPlay;
+
+      audio.onloadedmetadata = function () {
+        const clipLen = computeSegmentBounds();
+        const displayTotal = clipLen || audio.duration;
+
+        if (!isNaN(segmentStart)) {
+          audio.currentTime = segmentStart;
+        }
+
+        durationLabel.textContent = "Durée : " + formatTime(displayTotal);
+        timeLabel.textContent = "0:00 / " + formatTime(displayTotal);
+
+        if (autoPlayAfterLoad) {
+          startPlaybackWithFade(false);
+        }
       };
 
       return true;
@@ -388,44 +559,34 @@
     function startNewRandomSongAndPlay() {
       audio.pause();
       isPlaying = false;
-
-      const ok = pickRandomSong();
+      clearFade();
+      const ok = pickRandomSong(true);
       if (!ok) return;
-
-      audio.play().then(() => {
-        isPlaying = true;
-        playBtn.textContent = "⏸️ Pause";
-      }).catch(err => {
-        console.log("Lecture bloquée :", err);
-      });
     }
 
-    newSongBtn.addEventListener('click', function() {
+    newSongBtn.addEventListener('click', function () {
       startNewRandomSongAndPlay();
     });
 
-    playBtn.addEventListener('click', function() {
+    playBtn.addEventListener('click', function () {
       if (!audio.src) {
-        // aucune chanson chargée : on en choisit une nouvelle et on joue
         startNewRandomSongAndPlay();
         return;
       }
 
       if (!isPlaying) {
-        // Reprendre là où ça avait arrêté
-        audio.play().then(() => {
-          isPlaying = true;
-          playBtn.textContent = "⏸️ Pause";
-        }).catch(err => console.log(err));
+        // Reprendre là où ça a arrêté, avec petit fade
+        startPlaybackWithFade(false);
       } else {
-        // Mettre en pause (sans reset)
+        // Pause (sans reset)
         audio.pause();
         isPlaying = false;
+        clearFade();
         playBtn.textContent = "▶️ Reprendre";
       }
     });
 
-    revealBtn.addEventListener('click', function() {
+    revealBtn.addEventListener('click', function () {
       if (currentSongIndex === null) return;
       const song = songs[currentSongIndex];
       answerTitle.textContent = song.title;
@@ -435,10 +596,8 @@
 
     audio.addEventListener('timeupdate', updateAudioProgress);
 
-    audio.addEventListener('ended', function() {
-      isPlaying = false;
-      playBtn.textContent = "▶️ Rejouer";
-      updateAudioProgress();
+    audio.addEventListener('ended', function () {
+      handleClipEnded();
     });
   </script>
 </body>
