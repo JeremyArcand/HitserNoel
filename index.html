@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Hitster Noël - Version aléatoire</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 40px 10px;
+      background-color: #fffbf0;
+      color: #c0392b;
+    }
+    h1 {
+      font-size: 2.2em;
+      margin-bottom: 10px;
+    }
+    h2 {
+      font-size: 1.4em;
+      margin-top: 5px;
+      margin-bottom: 25px;
+    }
+    #card {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 25px 20px 30px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    #round-label {
+      font-size: 1.3em;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    #duration-label {
+      margin-top: 4px;
+      font-size: 0.95em;
+      color: #7f8c8d;
+    }
+    #answer {
+      margin-top: 18px;
+      font-size: 1.05em;
+      font-weight: 600;
+    }
+    .hidden {
+      visibility: hidden;
+    }
+    audio {
+      margin-top: 20px;
+      width: 100%;
+      max-width: 380px;
+    }
+    .buttons {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    button {
+      border: none;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 1em;
+      cursor: pointer;
+      background: #c0392b;
+      color: white;
+      min-width: 180px;
+    }
+    button.secondary {
+      background: #ecf0f1;
+      color: #c0392b;
+      border: 1px solid #c0392b;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    footer {
+      margin-top: 30px;
+      font-size: 0.85em;
+      color: #7f8c8d;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎄 Hitster Noël 🎄</h1>
+  <h2>Mode aléatoire</h2>
+
+  <div id="card">
+    <div id="round-label">Chanson 1</div>
+    <div id="duration-label">Durée : --:--</div>
+
+    <audio id="player"></audio>
+
+    <div class="buttons">
+      <button id="new-song-btn">Nouvelle chanson aléatoire</button>
+      <button id="play-btn">▶️ Jouer / Rejouer</button>
+      <button id="reveal-btn" class="secondary">Révéler le titre & l'artiste</button>
+    </div>
+
+    <div id="answer" class="hidden">
+      Titre : <span id="answer-title"></span><br>
+      Artiste : <span id="answer-artist"></span>
+    </div>
+  </div>
+
+  <footer>
+    Scan le QR, clique sur "Nouvelle chanson" puis joue avec ta copine 💚
+  </footer>
+
+  <script>
+    // Liste de TES chansons : adapte les noms de fichiers à tes vrais .mp3
+    const songs = [
+      { file: "01_all_i_want.mp3",  title: "All I Want for Christmas Is You", artist: "Mariah Carey" },
+      { file: "02_last_christmas.mp3", title: "Last Christmas", artist: "Wham!" },
+      { file: "03_jingle_bell_rock.mp3", title: "Jingle Bell Rock", artist: "Bobby Helms" },
+      // Ajoute ici les autres chansons :
+      // { file: "04_....mp3", title: "...", artist: "..." },
+      // etc.
+    ];
+
+    const audio = document.getElementById('player');
+    const roundLabel = document.getElementById('round-label');
+    const durationLabel = document.getElementById('duration-label');
+    const answerDiv = document.getElementById('answer');
+    const answerTitle = document.getElementById('answer-title');
+    const answerArtist = document.getElementById('answer-artist');
+
+    const newSongBtn = document.getElementById('new-song-btn');
+    const playBtn = document.getElementById('play-btn');
+    const revealBtn = document.getElementById('reveal-btn');
+
+    let currentSongIndex = null;
+    let round = 1;
+
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return "--:--";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return m.toString().padStart(1, '0') + ":" + s.toString().padStart(2, '0');
+    }
+
+    function pickRandomSong() {
+      if (songs.length === 0) return;
+
+      // Choix aléatoire (simple, il peut retomber sur la même)
+      let index = Math.floor(Math.random() * songs.length);
+      currentSongIndex = index;
+      const song = songs[index];
+
+      // Met à jour l'affichage de la manche
+      roundLabel.textContent = "Chanson " + round;
+      round++;
+
+      // Cache la réponse
+      answerDiv.classList.add('hidden');
+      answerTitle.textContent = "";
+      answerArtist.textContent = "";
+
+      // Charge le fichier audio
+      audio.src = song.file;
+      audio.load();
+
+      durationLabel.textContent = "Durée : chargement...";
+
+      // Quand les métadonnées sont chargées (y compris la durée)
+      audio.onloadedmetadata = function() {
+        durationLabel.textContent = "Durée : " + formatTime(audio.duration);
+      };
+    }
+
+    newSongBtn.addEventListener('click', function() {
+      pickRandomSong();
+    });
+
+    playBtn.addEventListener('click', function() {
+      if (!audio.src) {
+        pickRandomSong();
+      }
+      audio.currentTime = 0;
+      audio.play().catch(err => {
+        console.log("Lecture bloquée :", err);
+      });
+    });
+
+    revealBtn.addEventListener('click', function() {
+      if (currentSongIndex === null) return;
+      const song = songs[currentSongIndex];
+      answerTitle.textContent = song.title;
+      answerArtist.textContent = song.artist;
+      answerDiv.classList.remove('hidden');
+    });
+
+    // Option : tu peux lancer directement une chanson au chargement
+    // pickRandomSong();
+  </script>
+</body>
+</html>
