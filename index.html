@@ -3,133 +3,228 @@
 <head>
   <meta charset="UTF-8">
   <title>Hitster Noël - Version aléatoire</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
+    :root {
+      --red: #b63830;
+      --dark-red: #8e2923;
+      --green: #1f7a4d;
+      --bg: #fdf7ec;
+      --card-bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: "Segoe UI", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       text-align: center;
       margin: 0;
-      padding: 40px 10px;
-      background-color: #fffbf0;
-      color: #c0392b;
+      padding: 24px 12px 40px;
+      min-height: 100vh;
+      color: var(--red);
+      background: radial-gradient(circle at top, #ffe7de 0, #fdf7ec 45%, #e8f4ef 100%);
     }
+
     h1 {
-      font-size: 2.2em;
-      margin-bottom: 10px;
+      font-size: 2rem;
+      margin: 4px 0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.15);
     }
+
     h2 {
-      font-size: 1.4em;
-      margin-top: 5px;
-      margin-bottom: 25px;
+      font-size: 1.1rem;
+      margin: 0 0 20px;
+      color: #7f8c8d;
     }
+
     #card {
-      max-width: 500px;
+      max-width: 480px;
       margin: 0 auto;
-      padding: 25px 20px 30px;
-      background: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 22px 18px 26px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #card::before,
+    #card::after {
+      content: "❄️";
+      position: absolute;
+      font-size: 1.4rem;
+      opacity: 0.18;
+    }
+
+    #card::before {
+      top: 6px;
+      left: 10px;
+    }
+
+    #card::after {
+      bottom: 6px;
+      right: 12px;
     }
 
     /* Progression du JEU (nombre de chansons jouées) */
     #game-progress-container {
       margin-bottom: 18px;
     }
+
     #game-progress-bar {
       width: 100%;
       max-width: 380px;
-      height: 10px;
+      height: 12px;
       background: #ecf0f1;
       border-radius: 999px;
       margin: 0 auto 5px auto;
       overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.04);
     }
+
     #game-progress-fill {
       height: 100%;
       width: 0%;
-      background: #27ae60;
-      transition: width 0.2s ease-out;
+      background: linear-gradient(90deg, var(--green), #27ae60);
+      transition: width 0.25s ease-out;
     }
+
     #game-progress-label {
-      font-size: 0.95em;
+      font-size: 0.95rem;
       color: #7f8c8d;
     }
 
     #round-label {
-      font-size: 1.3em;
+      font-size: 1.3rem;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
+
     #duration-label {
-      margin-top: 4px;
-      font-size: 0.95em;
+      margin-top: 2px;
+      font-size: 0.95rem;
       color: #7f8c8d;
     }
 
-    /* Barre de progression du TEMPS de la chanson */
+    /* Barre de progression de la chanson */
     #progress-container {
-      margin-top: 15px;
-      margin-bottom: 5px;
+      margin-top: 16px;
+      margin-bottom: 6px;
       text-align: center;
     }
+
     #progress-bar {
       width: 100%;
       max-width: 380px;
-      height: 8px;
+      height: 9px;
       background: #ecf0f1;
       border-radius: 999px;
       margin: 0 auto;
       overflow: hidden;
     }
+
     #progress-fill {
       height: 100%;
       width: 0%;
-      background: #c0392b;
-      transition: width 0.1s linear;
+      background: linear-gradient(90deg, var(--red), var(--dark-red));
+      transition: width 0.12s linear;
     }
+
     #time-label {
-      font-size: 0.9em;
+      font-size: 0.9rem;
       color: #7f8c8d;
-      margin-top: 5px;
+      margin-top: 6px;
     }
 
     audio {
-      margin-top: 10px;
+      margin-top: 8px;
       width: 100%;
       max-width: 380px;
     }
+
     .buttons {
       margin-top: 20px;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      align-items: center;
+      align-items: stretch;
     }
+
     button {
       border: none;
-      padding: 10px 18px;
+      padding: 11px 18px;
       border-radius: 999px;
-      font-size: 1em;
+      font-size: 1rem;
       cursor: pointer;
-      background: #c0392b;
+      background: var(--red);
       color: white;
       min-width: 180px;
+      font-weight: 500;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+      transition: transform 0.05s ease-out, box-shadow 0.05s ease-out, background 0.15s;
+      touch-action: manipulation;
     }
+
+    button:active {
+      transform: translateY(1px);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
     button.secondary {
       background: #ecf0f1;
-      color: #c0392b;
-      border: 1px solid #c0392b;
+      color: var(--red);
+      border: 1px solid rgba(192,57,43,0.5);
+      box-shadow: none;
     }
+
     button:disabled {
       opacity: 0.6;
       cursor: default;
+      box-shadow: none;
     }
+
     #answer {
       margin-top: 18px;
-      font-size: 1.05em;
+      font-size: 1.02rem;
       font-weight: 600;
     }
+
     .hidden {
       visibility: hidden;
+    }
+
+    /* Responsive : tablettes / PC */
+    @media (min-width: 600px) {
+      body {
+        padding-top: 50px;
+      }
+      h1 {
+        font-size: 2.3rem;
+      }
+      h2 {
+        font-size: 1.2rem;
+      }
+      #card {
+        padding: 26px 28px 30px;
+        border-radius: 22px;
+      }
+      .buttons {
+        flex-direction: row;
+        justify-content: center;
+      }
+      .buttons button {
+        flex: 1;
+        max-width: 190px;
+      }
+    }
+
+    @media (min-width: 900px) {
+      #card {
+        max-width: 520px;
+      }
     }
   </style>
 </head>
@@ -138,7 +233,7 @@
   <h2>Mode aléatoire</h2>
 
   <div id="card">
-    <!-- Barre de progression du jeu (combien de chansons jouées) -->
+    <!-- Progression du jeu -->
     <div id="game-progress-container">
       <div id="game-progress-bar">
         <div id="game-progress-fill"></div>
@@ -172,32 +267,31 @@
   </div>
 
   <script>
-    // Liste de TES chansons : adapte les noms et les fichiers .mp3
-   const songs = [
-  { file: "01_all_i_want.mp3", title: "All I Want for Christmas Is You", artist: "Mariah Carey" },
-  { file: "02_last_christmas.mp3", title: "Last Christmas", artist: "Wham!" },
-  { file: "03_jingle_bell_rock.mp3", title: "Jingle Bell Rock", artist: "Bobby Helms" },
-  { file: "04_santa_tell_me.mp3", title: "Santa Tell Me", artist: "Ariana Grande" },
-  { file: "05_underneath_the_tree.mp3", title: "Underneath the Tree", artist: "Kelly Clarkson" },
-  { file: "06_mistletoe.mp3", title: "Mistletoe", artist: "Justin Bieber" },
-  { file: "07_snowman.mp3", title: "Snowman", artist: "Sia" },
-  { file: "08_santa's_coming_for_us.mp3", title: "Santa's Coming for Us", artist: "Sia" },
-  { file: "09_it's_beginning_to_look_a_lot_like_christmas.mp3", title: "It's Beginning to Look a Lot Like Christmas", artist: "Michael Bublé" },
-  { file: "10_rockin'_around_the_christmas_tree.mp3", title: "Rockin' Around the Christmas Tree", artist: "Brenda Lee" },
-  { file: "11_it's_the_most_wonderful_time_of_the_year.mp3", title: "It's the Most Wonderful Time of the Year", artist: "Andy Williams" },
-  { file: "12_wonderful_christmastime.mp3", title: "Wonderful Christmastime", artist: "Paul McCartney" },
-  { file: "13_happy_xmas.mp3", title: "Happy Xmas (War Is Over)", artist: "John Lennon" },
-  { file: "14_step_into_christmas.mp3", title: "Step Into Christmas", artist: "Elton John" },
-  { file: "15_feliz_navidad.mp3", title: "Feliz Navidad", artist: "José Feliciano" },
-  { file: "16_let_it_snow.mp3", title: "Let It Snow! Let It Snow! Let It Snow!", artist: "Dean Martin" },
-  { file: "17_the_christmas_song.mp3", title: "The Christmas Song (Chestnuts Roasting)", artist: "Nat King Cole" },
-  { file: "18_here_comes_santa_clause.mp3", title: "Here Comes Santa Claus", artist: "Gene Autry" },
-  { file: "19_silver_bells.mp3", title: "Silver Bells", artist: "Dean Martin" },
-  { file: "20_make_it_to_christmas.mp3", title: "Make It to Christmas", artist: "Alessia Cara" },
-  { file: "21_a_holly_jolly_christmas.mp3", title: "A Holly Jolly Christmas", artist: "Burl Ives" },
-  { file: "22_christmas.mp3", title: "Christmas (Baby Please Come Home)", artist: "Mariah Carey" }
-];
-
+    // === TES CHANSONS ===
+    const songs = [
+      { file: "01_all_i_want.mp3", title: "All I Want for Christmas Is You", artist: "Mariah Carey" },
+      { file: "02_last_christmas.mp3", title: "Last Christmas", artist: "Wham!" },
+      { file: "03_jingle_bell_rock.mp3", title: "Jingle Bell Rock", artist: "Bobby Helms" },
+      { file: "04_santa_tell_me.mp3", title: "Santa Tell Me", artist: "Ariana Grande" },
+      { file: "05_underneath_the_tree.mp3", title: "Underneath the Tree", artist: "Kelly Clarkson" },
+      { file: "06_mistletoe.mp3", title: "Mistletoe", artist: "Justin Bieber" },
+      { file: "07_snowman.mp3", title: "Snowman", artist: "Sia" },
+      { file: "08_santa's_coming_for_us.mp3", title: "Santa's Coming for Us", artist: "Sia" },
+      { file: "09_it's_beginning_to_look_a_lot_like_christmas.mp3", title: "It's Beginning to Look a Lot Like Christmas", artist: "Michael Bublé" },
+      { file: "10_rockin'_around_the_christmas_tree.mp3", title: "Rockin' Around the Christmas Tree", artist: "Brenda Lee" },
+      { file: "11_it's_the_most_wonderful_time_of_the_year.mp3", title: "It's the Most Wonderful Time of the Year", artist: "Andy Williams" },
+      { file: "12_wonderful_christmastime.mp3", title: "Wonderful Christmastime", artist: "Paul McCartney" },
+      { file: "13_happy_xmas.mp3", title: "Happy Xmas (War Is Over)", artist: "John Lennon" },
+      { file: "14_step_into_christmas.mp3", title: "Step Into Christmas", artist: "Elton John" },
+      { file: "15_feliz_navidad.mp3", title: "Feliz Navidad", artist: "José Feliciano" },
+      { file: "16_let_it_snow.mp3", title: "Let It Snow! Let It Snow! Let It Snow!", artist: "Dean Martin" },
+      { file: "17_the_christmas_song.mp3", title: "The Christmas Song (Chestnuts Roasting)", artist: "Nat King Cole" },
+      { file: "18_here_comes_santa_clause.mp3", title: "Here Comes Santa Claus", artist: "Gene Autry" },
+      { file: "19_silver_bells.mp3", title: "Silver Bells", artist: "Dean Martin" },
+      { file: "20_make_it_to_christmas.mp3", title: "Make It to Christmas", artist: "Alessia Cara" },
+      { file: "21_a_holly_jolly_christmas.mp3", title: "A Holly Jolly Christmas", artist: "Burl Ives" },
+      { file: "22_christmas.mp3", title: "Christmas (Baby Please Come Home)", artist: "Mariah Carey" }
+    ];
 
     const audio = document.getElementById('player');
     const roundLabel = document.getElementById('round-label');
@@ -219,12 +313,10 @@
     let currentSongIndex = null;
     let isPlaying = false;
 
-    // Pour ne pas rejouer les chansons déjà jouées
     let remainingIndexes = songs.map((_, i) => i);
     let playedCount = 0;
     const totalSongs = songs.length;
 
-    // Initialiser l'affichage de la progression du jeu
     function updateGameProgress() {
       gameProgressLabel.textContent = playedCount + " / " + totalSongs + " chansons";
       const percent = totalSongs === 0 ? 0 : (playedCount / totalSongs) * 100;
@@ -253,38 +345,30 @@
 
     function pickRandomSong() {
       if (remainingIndexes.length === 0) {
-        // Toutes les chansons ont été utilisées
         roundLabel.textContent = "Toutes les chansons ont été jouées 🎉";
         durationLabel.textContent = "Durée : --:--";
         audio.src = "";
         resetAudioProgress();
         playBtn.disabled = true;
         newSongBtn.disabled = true;
-        return;
+        return false;
       }
 
-      // Choisir un index au hasard dans remainingIndexes
       const randomPos = Math.floor(Math.random() * remainingIndexes.length);
       const index = remainingIndexes[randomPos];
-      // Retirer cet index de la liste pour ne plus le rejouer
       remainingIndexes.splice(randomPos, 1);
 
       currentSongIndex = index;
       const song = songs[index];
 
-      // Met à jour le numéro de chanson (basé sur combien ont été jouées)
       playedCount++;
       roundLabel.textContent = "Chanson " + playedCount;
-
-      // Met à jour la progression du jeu
       updateGameProgress();
 
-      // Réinitialise la réponse
       answerDiv.classList.add('hidden');
       answerTitle.textContent = "";
       answerArtist.textContent = "";
 
-      // Charge le fichier audio
       audio.src = song.file;
       audio.load();
 
@@ -297,41 +381,47 @@
         durationLabel.textContent = "Durée : " + formatTime(audio.duration);
         timeLabel.textContent = "0:00 / " + formatTime(audio.duration);
       };
+
+      return true;
+    }
+
+    function startNewRandomSongAndPlay() {
+      audio.pause();
+      isPlaying = false;
+
+      const ok = pickRandomSong();
+      if (!ok) return;
+
+      audio.play().then(() => {
+        isPlaying = true;
+        playBtn.textContent = "⏸️ Pause";
+      }).catch(err => {
+        console.log("Lecture bloquée :", err);
+      });
     }
 
     newSongBtn.addEventListener('click', function() {
-      // Si une chanson est en cours, on stoppe
-      audio.pause();
-      audio.currentTime = 0;
-      isPlaying = false;
-      playBtn.textContent = "▶️ Jouer";
-      resetAudioProgress();
-
-      pickRandomSong();
+      startNewRandomSongAndPlay();
     });
 
     playBtn.addEventListener('click', function() {
       if (!audio.src) {
-        // Si aucune chanson n'est chargée, on en tire une nouvelle
-        pickRandomSong();
+        // aucune chanson chargée : on en choisit une nouvelle et on joue
+        startNewRandomSongAndPlay();
+        return;
       }
 
-      if (!audio.src) return; // au cas où il n'y a plus de chansons
-
       if (!isPlaying) {
-        audio.currentTime = 0;
+        // Reprendre là où ça avait arrêté
         audio.play().then(() => {
           isPlaying = true;
-          playBtn.textContent = "⏹️ Stop";
-        }).catch(err => {
-          console.log("Lecture bloquée :", err);
-        });
+          playBtn.textContent = "⏸️ Pause";
+        }).catch(err => console.log(err));
       } else {
+        // Mettre en pause (sans reset)
         audio.pause();
-        audio.currentTime = 0;
         isPlaying = false;
-        playBtn.textContent = "▶️ Jouer";
-        resetAudioProgress();
+        playBtn.textContent = "▶️ Reprendre";
       }
     });
 
@@ -347,10 +437,9 @@
 
     audio.addEventListener('ended', function() {
       isPlaying = false;
-      playBtn.textContent = "▶️ Jouer";
+      playBtn.textContent = "▶️ Rejouer";
       updateAudioProgress();
     });
   </script>
 </body>
 </html>
-
