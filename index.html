@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Hitster Noël - Version améliorée</title>
+  <title>Hitster Noël - Version joueurs & podium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -41,7 +41,7 @@
     }
 
     #card {
-      max-width: 480px;
+      max-width: 520px;
       margin: 0 auto;
       padding: 22px 18px 26px;
       background: var(--card-bg);
@@ -51,11 +51,9 @@
       overflow: hidden;
     }
 
-    /* Retrait des flocons */
-
     /* Progression du jeu */
     #game-progress-container {
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     #game-progress-bar {
@@ -81,9 +79,35 @@
       color: #7f8c8d;
     }
 
+    /* Choix nombre de chansons */
+    #rounds-container {
+      margin: 8px auto 10px;
+      font-size: 0.9rem;
+      color: #7f8c8d;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    #rounds-container span {
+      font-weight: 600;
+      color: var(--red);
+    }
+
+    #round-count-input {
+      width: 70px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #dcdcdc;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
     /* Difficulté */
     #difficulty-container {
-      margin: 10px auto 14px;
+      margin: 6px auto 14px;
       font-size: 0.9rem;
       color: #7f8c8d;
       display: flex;
@@ -123,7 +147,7 @@
       color: #7f8c8d;
     }
 
-    /* Barre de progression de la chanson */
+    /* Barre de progression de l'extrait */
     #progress-container {
       margin-top: 16px;
       margin-bottom: 6px;
@@ -225,10 +249,132 @@
     }
 
     .hidden {
-      visibility: hidden;
+      display: none;
     }
 
-    /* Responsive */
+    /* Section joueurs */
+    #players-section {
+      margin-top: 22px;
+      border-top: 1px solid #ecf0f1;
+      padding-top: 16px;
+      text-align: left;
+    }
+
+    #players-section h3 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+      text-align: center;
+    }
+
+    #add-player {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    #player-name-input {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #dcdcdc;
+      min-width: 150px;
+      font-size: 0.9rem;
+    }
+
+    #add-player-btn {
+      padding: 7px 14px;
+      font-size: 0.9rem;
+      min-width: auto;
+      box-shadow: none;
+    }
+
+    #players-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .player-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: #f8f4f1;
+    }
+
+    .player-main {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .player-name {
+      font-weight: 600;
+    }
+
+    .player-score {
+      font-size: 0.85rem;
+      color: #7f8c8d;
+    }
+
+    .player-buttons {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .player-buttons button {
+      padding: 5px 9px;
+      font-size: 0.8rem;
+      min-width: auto;
+      box-shadow: none;
+    }
+
+    /* Podium */
+    #podium-section {
+      margin-top: 18px;
+      border-top: 1px dashed #ecf0f1;
+      padding-top: 10px;
+      text-align: center;
+    }
+
+    #podium-section h3 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }
+
+    #podium-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.95rem;
+    }
+
+    .podium-line {
+      padding: 4px 6px;
+      border-radius: 8px;
+    }
+
+    .podium-1 {
+      font-weight: 700;
+      background: rgba(241, 196, 15, 0.18);
+    }
+
+    .podium-2 {
+      font-weight: 600;
+      background: rgba(189, 195, 199, 0.18);
+    }
+
+    .podium-3 {
+      font-weight: 500;
+      background: rgba(205, 127, 50, 0.18);
+    }
+
     @media (min-width: 600px) {
       body {
         padding-top: 50px;
@@ -251,11 +397,11 @@
         flex: 1;
         max-width: 190px;
       }
-    }
-
-    @media (min-width: 900px) {
-      #card {
-        max-width: 520px;
+      #players-section {
+        text-align: center;
+      }
+      #players-list {
+        text-align: left;
       }
     }
   </style>
@@ -271,7 +417,13 @@
       <div id="game-progress-bar">
         <div id="game-progress-fill"></div>
       </div>
-      <div id="game-progress-label">0 / 22 chansons</div>
+      <div id="game-progress-label">0 / 0 chansons</div>
+    </div>
+
+    <!-- Choix nombre de chansons -->
+    <div id="rounds-container">
+      <span>Chansons dans la partie :</span>
+      <input type="number" id="round-count-input" min="1" max="22" value="22">
     </div>
 
     <!-- Difficulté -->
@@ -286,7 +438,7 @@
     <div id="round-label">Chanson 1</div>
     <div id="duration-label">Durée : --:--</div>
 
-    <!-- Barre de progression -->
+    <!-- Barre de progression extrait -->
     <div id="progress-container">
       <div id="progress-bar">
         <div id="progress-fill"></div>
@@ -305,13 +457,30 @@
     <div class="buttons">
       <button id="new-song-btn">Nouvelle chanson aléatoire</button>
       <button id="play-btn">▶️ Jouer</button>
-      <button id="reveal-btn" class="secondary">Révéler</button>
+      <button id="reveal-btn" class="secondary">Révéler le titre & l'artiste</button>
     </div>
 
     <div id="answer" class="hidden">
       Titre : <span id="answer-title"></span><br>
       Artiste : <span id="answer-artist"></span>
     </div>
+
+    <!-- Section joueurs -->
+    <div id="players-section">
+      <h3>Joueurs</h3>
+      <div id="add-player">
+        <input type="text" id="player-name-input" placeholder="Nom du joueur">
+        <button id="add-player-btn" type="button">Ajouter</button>
+      </div>
+      <div id="players-list"></div>
+    </div>
+
+    <!-- Podium final -->
+    <div id="podium-section" class="hidden">
+      <h3>🏆 Podium de la partie</h3>
+      <div id="podium-content"></div>
+    </div>
+
   </div>
 
   <script>
@@ -356,11 +525,20 @@
     const gameProgressFill = document.getElementById('game-progress-fill');
     const gameProgressLabel = document.getElementById('game-progress-label');
 
+    const roundsInput = document.getElementById('round-count-input');
+
     const answerDiv = document.getElementById('answer');
     const answerTitle = document.getElementById('answer-title');
     const answerArtist = document.getElementById('answer-artist');
 
     const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
+
+    const playerNameInput = document.getElementById('player-name-input');
+    const addPlayerBtn = document.getElementById('add-player-btn');
+    const playersListDiv = document.getElementById('players-list');
+
+    const podiumSection = document.getElementById('podium-section');
+    const podiumContent = document.getElementById('podium-content');
 
     let difficulty = "easy";
     let currentSongIndex = null;
@@ -368,12 +546,83 @@
 
     let remainingIndexes = songs.map((_, i) => i);
     let playedCount = 0;
+    let maxRounds = songs.length;
     const totalSongs = songs.length;
+    let gameEnded = false;
 
     let segmentStart = 0;
     let segmentEnd = null;
     let fadeInterval = null;
     let autoPlayAfterLoad = false;
+
+    // Joueurs
+    let players = [];
+
+    /* === Joueurs === */
+    function renderPlayers() {
+      playersListDiv.innerHTML = "";
+      players.forEach((p, idx) => {
+        const row = document.createElement('div');
+        row.className = 'player-row';
+
+        const main = document.createElement('div');
+        main.className = 'player-main';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'player-name';
+        nameSpan.textContent = p.name;
+
+        const scoreSpan = document.createElement('span');
+        scoreSpan.className = 'player-score';
+        const total = p.titre + p.artiste;
+        scoreSpan.textContent = `${total} pts (Titre: ${p.titre}, Artiste: ${p.artiste})`;
+
+        main.appendChild(nameSpan);
+        main.appendChild(scoreSpan);
+
+        const btns = document.createElement('div');
+        btns.className = 'player-buttons';
+
+        const btnTitre = document.createElement('button');
+        btnTitre.textContent = "+1 Titre";
+        btnTitre.dataset.idx = idx;
+        btnTitre.dataset.type = "titre";
+
+        const btnArtiste = document.createElement('button');
+        btnArtiste.textContent = "+1 Artiste";
+        btnArtiste.dataset.idx = idx;
+        btnArtiste.dataset.type = "artiste";
+
+        btns.appendChild(btnTitre);
+        btns.appendChild(btnArtiste);
+
+        row.appendChild(main);
+        row.appendChild(btns);
+        playersListDiv.appendChild(row);
+      });
+    }
+
+    addPlayerBtn.addEventListener('click', () => {
+      const name = playerNameInput.value.trim();
+      if (!name) return;
+      players.push({ name, titre: 0, artiste: 0 });
+      playerNameInput.value = "";
+      renderPlayers();
+    });
+
+    playerNameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') addPlayerBtn.click();
+    });
+
+    playersListDiv.addEventListener('click', e => {
+      if (e.target.tagName !== 'BUTTON') return;
+      const idx = parseInt(e.target.dataset.idx, 10);
+      const type = e.target.dataset.type;
+      if (Number.isNaN(idx) || !players[idx]) return;
+      if (type === 'titre') players[idx].titre++;
+      if (type === 'artiste') players[idx].artiste++;
+      renderPlayers();
+    });
 
     /* === Volume === */
     volumeSlider.addEventListener('input', () => {
@@ -413,10 +662,23 @@
       }
     }
 
-    /* === Mise à jour progression === */
+    /* === Rounds (nombre de chansons) === */
+    roundsInput.addEventListener('input', () => {
+      if (playedCount > 0) return; // on ne change pas en cours de partie
+      let val = parseInt(roundsInput.value, 10);
+      if (Number.isNaN(val)) val = totalSongs;
+      if (val < 1) val = 1;
+      if (val > totalSongs) val = totalSongs;
+      roundsInput.value = val;
+      maxRounds = val;
+      updateGameProgress();
+    });
+
+    /* === Progression jeu / audio === */
     function updateGameProgress() {
-      gameProgressLabel.textContent = playedCount + " / " + totalSongs + " chansons";
-      gameProgressFill.style.width = (playedCount / totalSongs * 100) + "%";
+      gameProgressLabel.textContent = `${playedCount} / ${maxRounds} chansons`;
+      const percent = maxRounds ? (playedCount / maxRounds) * 100 : 0;
+      gameProgressFill.style.width = `${Math.min(100, percent)}%`;
     }
 
     function resetAudioProgress() {
@@ -425,18 +687,13 @@
     }
 
     function updateAudioProgress() {
-      if (!audio.duration) return;
-
-      let total = segmentEnd - segmentStart;
-      let elapsed = Math.max(0, audio.currentTime - segmentStart);
-
+      if (!audio.duration || segmentEnd == null) return;
+      const total = segmentEnd - segmentStart;
+      const elapsed = Math.max(0, audio.currentTime - segmentStart);
       if (elapsed >= total) {
-        audio.pause();
-        isPlaying = false;
-        playBtn.textContent = "▶️ Rejouer";
+        handleClipEnded();
         return;
       }
-
       progressFill.style.width = (elapsed / total * 100) + "%";
       timeLabel.textContent = formatTime(elapsed) + " / " + formatTime(total);
     }
@@ -453,27 +710,26 @@
       }
     }
 
-    /* === Sélection aléatoire extrait === */
+    /* === Segment aléatoire === */
     function computeSegment() {
-      let full = audio.duration;
-      let len = getClipLength();
-
+      const full = audio.duration;
+      const len = getClipLength();
       if (!len || len >= full) {
         segmentStart = 0;
         segmentEnd = full;
       } else {
-        const maxStart = full - len;
+        const maxStart = Math.max(0, full - len);
         segmentStart = Math.random() * maxStart;
         segmentEnd = segmentStart + len;
       }
     }
 
     /* === Fade-in === */
-    function playWithFade(reset) {
+    function playWithFade(resetToStart) {
       clearFade();
-      audio.volume = 0;
+      try { audio.volume = 0; } catch(e){}
 
-      if (reset) audio.currentTime = segmentStart;
+      if (resetToStart) audio.currentTime = segmentStart;
 
       audio.play().then(() => {
         isPlaying = true;
@@ -481,17 +737,67 @@
 
         let step = 0;
         fadeInterval = setInterval(() => {
+          if (!isPlaying) {
+            clearFade();
+            return;
+          }
           step++;
-          audio.volume = Math.min(1, step / 20);
+          const vol = Math.min(1, step / 20);
+          try { audio.volume = vol; } catch(e){}
           if (step >= 20) clearFade();
         }, 40);
-      });
+      }).catch(err => console.log("Lecture bloquée :", err));
     }
 
-    /* === Charger et jouer une nouvelle chanson === */
-    function pickRandomSong(autoPlay=false) {
+    /* === Fin de partie & podium === */
+    function endGame() {
+      if (gameEnded) return;
+      gameEnded = true;
+      audio.pause();
+      isPlaying = false;
+      playBtn.disabled = true;
+      newSongBtn.disabled = true;
+      roundLabel.textContent = "Partie terminée 🎉";
+      durationLabel.textContent = "Merci d'avoir joué !";
+
+      podiumContent.innerHTML = "";
+      if (players.length === 0) {
+        const msg = document.createElement('div');
+        msg.textContent = "Aucun joueur ajouté.";
+        podiumContent.appendChild(msg);
+      } else {
+        const sorted = [...players].sort((a, b) => (b.titre + b.artiste) - (a.titre + a.artiste));
+        sorted.slice(0, 3).forEach((p, index) => {
+          const div = document.createElement('div');
+          const place = index + 1;
+          div.className = `podium-line podium-${place}`;
+          const total = p.titre + p.artiste;
+          div.textContent = `${place}ᵉ : ${p.name} — ${total} pts (Titre: ${p.titre}, Artiste: ${p.artiste})`;
+          podiumContent.appendChild(div);
+        });
+      }
+      podiumSection.classList.remove('hidden');
+    }
+
+    function handleClipEnded() {
+      audio.pause();
+      isPlaying = false;
+      clearFade();
+      playBtn.textContent = "▶️ Rejouer";
+      if (!Number.isNaN(segmentStart)) {
+        audio.currentTime = segmentStart;
+      }
+    }
+
+    /* === Tirage nouvelle chanson === */
+    function pickRandomSong(autoPlay = false) {
+      if (gameEnded) return;
+      if (playedCount >= maxRounds) {
+        endGame();
+        return;
+      }
       if (remainingIndexes.length === 0) {
-        roundLabel.textContent = "Toutes les chansons jouées 🎉";
+        endGame();
         return;
       }
 
@@ -507,6 +813,8 @@
 
       roundLabel.textContent = "Chanson " + playedCount;
       answerDiv.classList.add("hidden");
+      answerTitle.textContent = "";
+      answerArtist.textContent = "";
 
       audio.src = song.file;
       audio.load();
@@ -521,35 +829,54 @@
         durationLabel.textContent = "Durée : " + formatTime(total);
         timeLabel.textContent = "0:00 / " + formatTime(total);
 
-        if (autoPlayAfterLoad) playWithFade(false);
+        if (autoPlayAfterLoad) {
+          playWithFade(false);
+        }
       };
     }
 
-    /* === Boutons === */
-    newSongBtn.addEventListener("click", () => {
+    /* === Events boutons === */
+    newSongBtn.addEventListener('click', () => {
+      if (gameEnded) return;
       audio.pause();
+      isPlaying = false;
       pickRandomSong(true);
     });
 
-    playBtn.addEventListener("click", () => {
-      if (!audio.src) return pickRandomSong(true);
+    playBtn.addEventListener('click', () => {
+      if (gameEnded) return;
 
-      if (!isPlaying) playWithFade(false);
-      else {
+      if (!audio.src) {
+        pickRandomSong(true);
+        return;
+      }
+
+      if (!isPlaying) {
+        playWithFade(false);
+      } else {
         audio.pause();
         isPlaying = false;
         playBtn.textContent = "▶️ Reprendre";
+        clearFade();
       }
     });
 
-    revealBtn.addEventListener("click", () => {
+    revealBtn.addEventListener('click', () => {
+      if (currentSongIndex == null) return;
       const s = songs[currentSongIndex];
       answerTitle.textContent = s.title;
       answerArtist.textContent = s.artist;
       answerDiv.classList.remove("hidden");
     });
 
-    audio.addEventListener("timeupdate", updateAudioProgress);
+    audio.addEventListener('timeupdate', updateAudioProgress);
+
+    // Init
+    maxRounds = songs.length;
+    roundsInput.value = maxRounds;
+    updateGameProgress();
+    audio.volume = 1;
+    updateVolumeIcon();
   </script>
 </body>
 </html>
