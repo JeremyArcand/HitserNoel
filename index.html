@@ -574,8 +574,7 @@
 
         const scoreSpan = document.createElement('span');
         scoreSpan.className = 'player-score';
-        const total = p.titre + p.artiste;
-        scoreSpan.textContent = `${total} pts (Titre: ${p.titre}, Artiste: ${p.artiste})`;
+        scoreSpan.textContent = `${p.score} pts`;
 
         main.appendChild(nameSpan);
         main.appendChild(scoreSpan);
@@ -583,18 +582,18 @@
         const btns = document.createElement('div');
         btns.className = 'player-buttons';
 
-        const btnTitre = document.createElement('button');
-        btnTitre.textContent = "+1 Titre";
-        btnTitre.dataset.idx = idx;
-        btnTitre.dataset.type = "titre";
+        const btnPlus = document.createElement('button');
+        btnPlus.textContent = "+1";
+        btnPlus.dataset.idx = idx;
+        btnPlus.dataset.type = "plus";
 
-        const btnArtiste = document.createElement('button');
-        btnArtiste.textContent = "+1 Artiste";
-        btnArtiste.dataset.idx = idx;
-        btnArtiste.dataset.type = "artiste";
+        const btnMinus = document.createElement('button');
+        btnMinus.textContent = "-1";
+        btnMinus.dataset.idx = idx;
+        btnMinus.dataset.type = "minus";
 
-        btns.appendChild(btnTitre);
-        btns.appendChild(btnArtiste);
+        btns.appendChild(btnPlus);
+        btns.appendChild(btnMinus);
 
         row.appendChild(main);
         row.appendChild(btns);
@@ -605,7 +604,7 @@
     addPlayerBtn.addEventListener('click', () => {
       const name = playerNameInput.value.trim();
       if (!name) return;
-      players.push({ name, titre: 0, artiste: 0 });
+      players.push({ name, score: 0 });
       playerNameInput.value = "";
       renderPlayers();
     });
@@ -619,8 +618,10 @@
       const idx = parseInt(e.target.dataset.idx, 10);
       const type = e.target.dataset.type;
       if (Number.isNaN(idx) || !players[idx]) return;
-      if (type === 'titre') players[idx].titre++;
-      if (type === 'artiste') players[idx].artiste++;
+
+      if (type === 'plus') players[idx].score += 1;
+      if (type === 'minus') players[idx].score = Math.max(0, players[idx].score - 1);
+
       renderPlayers();
     });
 
@@ -766,13 +767,12 @@
         msg.textContent = "Aucun joueur ajouté.";
         podiumContent.appendChild(msg);
       } else {
-        const sorted = [...players].sort((a, b) => (b.titre + b.artiste) - (a.titre + a.artiste));
+        const sorted = [...players].sort((a, b) => b.score - a.score);
         sorted.slice(0, 3).forEach((p, index) => {
           const div = document.createElement('div');
           const place = index + 1;
           div.className = `podium-line podium-${place}`;
-          const total = p.titre + p.artiste;
-          div.textContent = `${place}ᵉ : ${p.name} — ${total} pts (Titre: ${p.titre}, Artiste: ${p.artiste})`;
+          div.textContent = `${place}ᵉ : ${p.name} — ${p.score} pts`;
           podiumContent.appendChild(div);
         });
       }
